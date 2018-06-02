@@ -2,9 +2,11 @@ package com.knk.kruszwilprestiz;
 
 import android.Manifest;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
 import android.os.Environment;
+import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
@@ -31,6 +33,22 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         getFileSaveDir();
+        // Check whether has the write settings permission or not.
+        boolean settingsCanWrite = false;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            settingsCanWrite = Settings.System.canWrite(this);
+        }
+
+        if(!settingsCanWrite) {
+            // If do not have write settings permission then open the Can modify system settings panel.
+            Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+            startActivity(intent);
+        }else {
+            // If has permission then show an alert dialog with message.
+            AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+            alertDialog.setMessage("Masz uprawnienia do zmiany ustawień!");
+            alertDialog.show();
+        }
 
         addSound(R.id.kupujetensyf, R.raw.kupujetensyf, "Kupuję ten syf, żeby Janusze dostali zawału.");
         addSound(R.id.wsadzrolexa, R.raw.wsadzrolexa,  "Wsadź w dupę Rolexa");
@@ -74,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void createMenu(final View view) {
-        CharSequence[] options = {"POBIERZ", "WYŚLIJ MESSENGEREM"};
+        CharSequence[] options = {"POBIERZ", "WYŚLIJ MESSENGEREM", "USTAW JAKO DZWONEK", "USTAW JAKO POWIADOMIENIE", "USTAW JAKO DŹWIĘK ALARMU"};
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Wybierz opcję:");
         builder.setItems(options, new DialogInterface.OnClickListener() {
@@ -91,6 +109,19 @@ public class MainActivity extends AppCompatActivity {
 
                     case 1:
                         soundMap.get(view).send(MainActivity.this, getApplicationContext(), fileSaveDir);
+                        break;
+
+                    case 2:
+                        soundMap.get(view).setAs(MainActivity.this, getApplicationContext(), fileSaveDir, Sound.Type.RINGTONE);
+                        break;
+
+                    case 3:
+                        soundMap.get(view).setAs(MainActivity.this, getApplicationContext(), fileSaveDir, Sound.Type.NOTIFICATION);
+                        break;
+
+                    case 4:
+                        soundMap.get(view).setAs(MainActivity.this, getApplicationContext(), fileSaveDir, Sound.Type.ALARM);
+                        break;
                 }
             }
         });
