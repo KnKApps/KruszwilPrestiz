@@ -47,14 +47,17 @@ public class MainActivity extends AppCompatActivity {
         getFileSaveDir();
 
 
+
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
             // Check whether has the write settings permission or not.
             boolean settingsCanWrite = Settings.System.canWrite(this);
+        
 
             if(!settingsCanWrite) {
                 // If do not have write settings permission then open the Can modify system settings panel.
                 Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
                 startActivity(intent);
+
             }
         }
 

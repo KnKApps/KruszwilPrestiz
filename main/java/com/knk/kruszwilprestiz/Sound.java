@@ -161,7 +161,60 @@ public class Sound {
         }
     }
 
+
     //Sends a sound message via Messenger
+    public File download(Context context, File dir, Type type) throws IOException {
+        InputStream is = null;
+        FileOutputStream fos = null;
+        File file = null;
+
+        try {
+            switch(type){
+                case NOTIFICATION:
+                    file = new File(dir, button.getText() + " notification.mp3");
+                    break;
+                case RINGTONE:
+                    file = new File(dir, button.getText() + " ringtone.mp3");
+                    break;
+                case ALARM:
+                    file = new File(dir, button.getText() + " alarm.mp3");
+                    break;
+            }
+
+            if (!file.exists() && !file.isDirectory()) {
+                file.createNewFile();
+            }
+
+            is = context.getResources().openRawResource(this.soundId);
+            fos = new FileOutputStream(file);
+
+            byte[] buffer = new byte[1024];
+            int count;
+
+            while ((count = is.read(buffer, 0, 1024)) != -1) {
+                fos.write(buffer, 0, count);
+            }
+
+            Toast.makeText(context, "Utworzono plik \n" + file.getAbsolutePath(), Toast.LENGTH_LONG).show();
+
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (is != null) {
+                is.close();
+            }
+            if (fos != null) {
+                fos.close();
+            }
+
+            return file;
+        }
+    }
+
+
     public void send(Activity activity, Context context, File dir) {
         File file;
         try {
@@ -179,7 +232,9 @@ public class Sound {
 
         File file = null;
         try {
+
             //Prevents directory cluttering, deletes unused sounds and saves new ones
+         
            switch (type) {
                 case ALARM:
                     deleteFiles(dir, type);
@@ -187,14 +242,20 @@ public class Sound {
                     break;
 
                 case RINGTONE:
+
                     deleteFiles(dir, type);
+
                     file = download(context, dir, Type.RINGTONE);
                     break;
 
                 case NOTIFICATION:
+
                     deleteFiles(dir, type);
                     file = download(context, dir, Type.NOTIFICATION);
             }
+
+
+           
 
         } catch (IOException e) {
             e.printStackTrace();
