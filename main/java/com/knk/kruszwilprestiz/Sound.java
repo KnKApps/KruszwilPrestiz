@@ -1,20 +1,18 @@
 package com.knk.kruszwilprestiz;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.media.RingtoneManager;
 import android.net.Uri;
-import android.os.Environment;
+import android.os.Build;
 import android.provider.MediaStore;
-import android.provider.Settings;
 import android.support.v4.content.FileProvider;
-import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.facebook.messenger.MessengerUtils;
@@ -29,11 +27,15 @@ import java.io.InputStream;
 
 
 public class Sound {
+    //Id of the mp3 file
     private int soundId;
     private Button button;
     private String caption;
     private MediaPlayer mp;
+    private boolean isFavourite = false;
 
+
+    //Types for RingtoneManager
     public enum Type {
         NOTIFICATION, ALARM, RINGTONE
     }
@@ -45,6 +47,16 @@ public class Sound {
         this.mp = mp;
     }
 
+    //Favourites or unfavourites sounds
+    public void toggleFavourite(Activity activity) {
+        if(this.isFavourite) {
+            removeFavourite(activity);
+        } else {
+            addFavourite(activity);
+        }
+    }
+
+    //Guess what it does
     public void play(Context context) {
         if (mp != null) {
             mp.release();
@@ -54,6 +66,7 @@ public class Sound {
         mp.start();
     }
 
+    //Saves a mp3 file in a directory created by getSaveDir()
     public File download(Context context, File dir) throws IOException {
         InputStream is = null;
         FileOutputStream fos = null;
@@ -68,6 +81,7 @@ public class Sound {
             is = context.getResources().openRawResource(this.soundId);
             fos = new FileOutputStream(file);
 
+
             byte[] buffer = new byte[1024];
             int count;
 
@@ -94,13 +108,26 @@ public class Sound {
         }
     }
 
-    public File download(Context context, File dir, String name) throws IOException {
+
+    //Overloaded download() method for setAs()
+    public File download(Context context, File dir, Type type) throws IOException {
         InputStream is = null;
         FileOutputStream fos = null;
         File file = null;
 
         try {
-            file = new File(dir, name + ".mp3");
+            switch(type){
+                case NOTIFICATION:
+                    file = new File(dir, button.getText() + " notification.mp3");
+                    break;
+                case RINGTONE:
+                    file = new File(dir, button.getText() + " ringtone.mp3");
+                    break;
+                case ALARM:
+                    file = new File(dir, button.getText() + " alarm.mp3");
+                    break;
+            }
+
             if (!file.exists() && !file.isDirectory()) {
                 file.createNewFile();
             }
@@ -134,6 +161,7 @@ public class Sound {
         }
     }
 
+    //Sends a sound message via Messenger
     public void send(Activity activity, Context context, File dir) {
         File file;
         try {
@@ -146,26 +174,33 @@ public class Sound {
         }
     }
 
+    //Sets a sound as default ringtone, notification or alarm sounds
     public void setAs(Activity activity, Context context, File dir, Type type) {
 
         File file = null;
         try {
-            switch (type) {
+            //Prevents directory cluttering, deletes unused sounds and saves new ones
+           switch (type) {
                 case ALARM:
-                    file = download(context, dir, "alarm");
+                    deleteFiles(dir, type);
+                    file = download(context, dir, Type.ALARM);
                     break;
 
                 case RINGTONE:
-                    file = download(context, dir, "ringtone");
+                    deleteFiles(dir, type);
+                    file = download(context, dir, Type.RINGTONE);
                     break;
 
                 case NOTIFICATION:
-                    file = download(context, dir, "notification");
+                    deleteFiles(dir, type);
+                    file = download(context, dir, Type.NOTIFICATION);
             }
+
         } catch (IOException e) {
             e.printStackTrace();
         }
 
+        //Creates a map of values necessary for sound files to be set
         ContentValues values = new ContentValues();
         values.put(MediaStore.MediaColumns.DATA, file.getAbsolutePath());
         values.put(MediaStore.MediaColumns.SIZE, file.length());
@@ -178,25 +213,111 @@ public class Sound {
         values.put(MediaStore.Audio.Media.IS_NOTIFICATION, (type==Type.NOTIFICATION)? true: false);
         values.put(MediaStore.Audio.Media.IS_ALARM, (type==Type.ALARM)? true: false);
 
-        Uri uri = MediaStore.Audio.Media.getContentUriForPath(file.getAbsolutePath());
 
-        uri = context.getContentResolver().insert(uri, values);
 
+        //Sets sound as selected, double URIs for preventing errors
         switch (type) {
             case RINGTONE:
-                RingtoneManager.setActualDefaultRingtoneUri(context, RingtoneManager.TYPE_RINGTONE, uri);
+                Uri ringtoneUri = MediaStore.Audio.Media.getContentUriForPath(file.getAbsolutePath());
+
+                Uri newRingtoneUri = context.getContentResolver().insert(ringtoneUri, values);
+
+                if(newRingtoneUri == null){
+                    context.getContentResolver().delete(ringtoneUri,null,null);
+                    newRingtoneUri = context.getContentResolver().insert(ringtoneUri, values);
+                }
+                RingtoneManager.setActualDefaultRingtoneUri(context, RingtoneManager.TYPE_RINGTONE, newRingtoneUri);
                 Toast.makeText(context,"Ustawiono dzwonek",Toast.LENGTH_LONG).show();
                 break;
 
             case NOTIFICATION:
-                RingtoneManager.setActualDefaultRingtoneUri(context, RingtoneManager.TYPE_NOTIFICATION, uri);
+                Uri notificationUri = MediaStore.Audio.Media.getContentUriForPath(file.getAbsolutePath());
+
+                Uri newNotificationUri = context.getContentResolver().insert(notificationUri, values);
+
+                if(newNotificationUri == null){
+                    context.getContentResolver().delete(notificationUri,null,null);
+                    newNotificationUri = context.getContentResolver().insert(notificationUri, values);
+                }
+                RingtoneManager.setActualDefaultRingtoneUri(context, RingtoneManager.TYPE_NOTIFICATION, newNotificationUri);
                 Toast.makeText(context, "Ustawiono dźwięk powiadomień", Toast.LENGTH_LONG).show();
                 break;
 
             case ALARM:
-                RingtoneManager.setActualDefaultRingtoneUri(context,RingtoneManager.TYPE_ALARM, uri);
+                Uri alarmUri = MediaStore.Audio.Media.getContentUriForPath(file.getAbsolutePath());
+
+                Uri newAlarmUri = context.getContentResolver().insert(alarmUri, values);
+
+                if(newAlarmUri == null){
+                    context.getContentResolver().delete(alarmUri,null,null);
+                    newAlarmUri = context.getContentResolver().insert(alarmUri, values);
+                }
+                RingtoneManager.setActualDefaultRingtoneUri(context,RingtoneManager.TYPE_ALARM, newAlarmUri);
                 Toast.makeText(context, "Ustawiono dźwięk alarmu", Toast.LENGTH_LONG).show();
                 break;
         }
+    }
+
+    //Deletes all files of certain type
+    private void deleteFiles(File dir, Type type) {
+        String ending = "";
+
+        switch (type){
+            case NOTIFICATION:
+                ending = "notification.mp3";
+                break;
+
+            case ALARM:
+                ending = "alarm.mp3";
+                break;
+
+            case RINGTONE:
+                ending = "ringtone.mp3";
+                break;
+        }
+
+        for (File file : dir.listFiles()) {
+            if(file.getName().contains(ending)) {
+                file.delete();
+            }
+        }
+    }
+
+    //Moves a sound from main_layout to favourites_layout
+    public void addFavourite(Activity activity) {
+        LinearLayout main_layout = activity.findViewById(R.id.main_layout);
+        LinearLayout favourites_layout = activity.findViewById(R.id.favourites_layout);
+
+        main_layout.removeView(this.button);
+        favourites_layout.addView(this.button);
+        this.isFavourite = true;
+        //Save state of this button
+        MainActivity.editor.putBoolean(Integer.toString(this.button.getId()), true);
+        MainActivity.editor.commit();
+        Log.i("halko", Integer.toString(this.button.getId())+" put");
+
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                this.button.setBackground(activity.getDrawable(R.drawable.button_bg_fav));
+            }
+
+
+    }
+
+    private void removeFavourite(Activity activity) {
+        LinearLayout main_layout = activity.findViewById(R.id.main_layout);
+        LinearLayout favourites_layout = activity.findViewById(R.id.favourites_layout);
+
+        favourites_layout.removeView(this.button);
+        main_layout.addView(this.button);
+        this.isFavourite = false;
+        //Save state of this button
+        MainActivity.editor.putBoolean(Integer.toString(this.button.getId()), false);
+        MainActivity.editor.commit();
+        Log.i("halko", Integer.toString(this.button.getId())+" remove");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            this.button.setBackground(activity.getDrawable(R.drawable.button_bg));
+        }
+
     }
 }

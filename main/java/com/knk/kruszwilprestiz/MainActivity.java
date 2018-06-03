@@ -1,10 +1,13 @@
 package com.knk.kruszwilprestiz;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
+import android.os.Build;
 import android.os.Environment;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
@@ -23,33 +26,39 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
+    //Map associating buttons and sounds, core of app
     private Map<View, Sound> soundMap =  new HashMap<>();
     private MediaPlayer mp;
+    //Directory for app sounds
     private File fileSaveDir;
+    //SharedPreferences to save state of an app
+    public static SharedPreferences sharedPreferences;
+    //Editor for SharedPreferences
+    public static SharedPreferences.Editor editor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        sharedPreferences = getPreferences(getApplicationContext().MODE_PRIVATE);
+        editor = sharedPreferences.edit();
 
+        //Create directory for app sounds
         getFileSaveDir();
-        // Check whether has the write settings permission or not.
-        boolean settingsCanWrite = false;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            settingsCanWrite = Settings.System.canWrite(this);
+
+
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+            // Check whether has the write settings permission or not.
+            boolean settingsCanWrite = Settings.System.canWrite(this);
+
+            if(!settingsCanWrite) {
+                // If do not have write settings permission then open the Can modify system settings panel.
+                Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+                startActivity(intent);
+            }
         }
 
-        if(!settingsCanWrite) {
-            // If do not have write settings permission then open the Can modify system settings panel.
-            Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
-            startActivity(intent);
-        }else {
-            // If has permission then show an alert dialog with message.
-            AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
-            alertDialog.setMessage("Masz uprawnienia do zmiany ustawień!");
-            alertDialog.show();
-        }
-
+        //Associate buttons with sounds
         addSound(R.id.kupujetensyf, R.raw.kupujetensyf, "Kupuję ten syf, żeby Janusze dostali zawału.");
         addSound(R.id.wsadzrolexa, R.raw.wsadzrolexa,  "Wsadź w dupę Rolexa");
         addSound(R.id.bylynajdrozsze, R.raw.bylynajdrozsze,"Były najdroższe, dlatego je wziąłem");
@@ -73,10 +82,19 @@ public class MainActivity extends AppCompatActivity {
         addSound(R.id.rolexodmierzaczas, R.raw.rolexodmierzaczas,  "Mój Rolex odmierza czas na odpoczynek");
     }
 
+    //Associates button with sound
     private void addSound(int buttonId, int soundId, String caption) {
         Button button = findViewById(buttonId);
         Sound sound = new Sound(soundId, button, caption, this.mp);
         soundMap.put(button, sound);
+        boolean isFavourite = sharedPreferences.getBoolean(Integer.toString(buttonId), false);
+
+
+        if (isFavourite) {
+            sound.addFavourite(MainActivity.this);
+            Log.i("halko", Integer.toString(buttonId)+" get");
+        }
+
 
         button.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -87,12 +105,14 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    //Plays a sound, duh
     public void buttonOnClick(View view) {
         soundMap.get(view).play(this);
     }
 
+    //Creates a menu on long click
     private void createMenu(final View view) {
-        CharSequence[] options = {"POBIERZ", "WYŚLIJ MESSENGEREM", "USTAW JAKO DZWONEK", "USTAW JAKO POWIADOMIENIE", "USTAW JAKO DŹWIĘK ALARMU"};
+        CharSequence[] options = {"ULUBIONE - DODAJ/USUŃ", "POBIERZ", "WYŚLIJ MESSENGEREM", "USTAW JAKO DZWONEK", "USTAW JAKO POWIADOMIENIE", "USTAW JAKO DŹWIĘK ALARMU"};
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Wybierz opcję:");
         builder.setItems(options, new DialogInterface.OnClickListener() {
@@ -100,6 +120,10 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(DialogInterface dialog, int which) {
                 switch(which) {
                     case 0:
+                        soundMap.get(view).toggleFavourite(MainActivity.this);
+                        break;
+
+                    case 1:
                         try {
                             soundMap.get(view).download(getApplicationContext(), fileSaveDir);
                         } catch (IOException e) {
@@ -107,19 +131,19 @@ public class MainActivity extends AppCompatActivity {
                         }
                         break;
 
-                    case 1:
+                    case 2:
                         soundMap.get(view).send(MainActivity.this, getApplicationContext(), fileSaveDir);
                         break;
 
-                    case 2:
+                    case 3:
                         soundMap.get(view).setAs(MainActivity.this, getApplicationContext(), fileSaveDir, Sound.Type.RINGTONE);
                         break;
 
-                    case 3:
+                    case 4:
                         soundMap.get(view).setAs(MainActivity.this, getApplicationContext(), fileSaveDir, Sound.Type.NOTIFICATION);
                         break;
 
-                    case 4:
+                    case 5:
                         soundMap.get(view).setAs(MainActivity.this, getApplicationContext(), fileSaveDir, Sound.Type.ALARM);
                         break;
                 }
@@ -130,7 +154,9 @@ public class MainActivity extends AppCompatActivity {
         alertDialog.show();
     }
 
+    //Gets permissions to write and read files and creates a directory for app sounds
     private void getFileSaveDir() {
+        //A flag to check whether permission is granted
         boolean isK = true;
         String[] permissions = {
                 Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -140,6 +166,7 @@ public class MainActivity extends AppCompatActivity {
                 Manifest.permission.MODIFY_AUDIO_SETTINGS
         };
 
+        //If permission not granted, change flag to false and break
         for(String s: permissions) {
             if(ContextCompat.checkSelfPermission(getApplicationContext(),s)!= PackageManager.PERMISSION_GRANTED) {
                 isK = false;
@@ -147,6 +174,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        //If any permission not granted, request them
         if(isK) {
             getSaveDir();
         } else {
@@ -155,6 +183,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    //Creates directory for app sounds
     private void getSaveDir() {
         File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC), "Kruszwil Soundboard");
         if(!file.mkdirs()) {
@@ -165,6 +194,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    //Creates directory on permission grant
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
