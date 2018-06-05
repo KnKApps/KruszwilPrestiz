@@ -295,7 +295,10 @@ public class MainActivity extends AppCompatActivity {
         if (isFirstLaunch) {
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
             builder.setTitle("Witaj w Kruszwil Prestiż!");
-            builder.setMessage("Dziękujemy za zakup! Dotknij i przytrzymaj dźwięk, aby skorzystać z funkcji aplikacji. Miłej zabawy! :)");
+            builder.setMessage("Dziękujemy za zakup! Wciśnij przycisk by odtworzyć dźwięk," +
+                    " przytrzymaj by skorzystać z dodatkowych funkcji. Miłej zabawy! :)");
+
+            
             builder.setPositiveButton("OKEJ!", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
