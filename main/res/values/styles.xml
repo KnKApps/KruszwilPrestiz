@@ -6,6 +6,7 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+
     </style>
 
     <style name="buttonActive" parent="Base.Widget.AppCompat.Button" >
@@ -16,5 +17,15 @@
         <item name="android:background">@drawable/button_bg</item>
         <item name="android:onClick">buttonOnClick</item>
     </style>
+
+    <style name="buttonFavourite" parent="Base.Widget.AppCompat.Button" >
+        <item name="android:layout_width">230dp</item>
+        <item name="android:layout_height">46dp</item>
+        <item name="android:layout_marginTop">30dp</item>
+        <item name="android:layout_marginBottom">30dp</item>
+        <item name="android:background">@drawable/button_bg_fav</item>
+        <item name="android:onClick">buttonOnClick</item>
+    </style>
+
 
 </resources>

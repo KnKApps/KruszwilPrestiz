@@ -27,7 +27,7 @@ import java.io.InputStream;
 
 
 public class Sound {
-    //Id of the mp3 file
+    //ID of the mp3 file
     private int soundId;
     private Button button;
     private String caption;
@@ -37,7 +37,7 @@ public class Sound {
 
     //Types for RingtoneManager
     public enum Type {
-        NOTIFICATION, ALARM, RINGTONE
+        NOTIFICATION, ALARM, RINGTONE, MESSENGER
     }
 
     public Sound(int soundId, Button button, String caption, MediaPlayer mp) {
@@ -126,6 +126,9 @@ public class Sound {
                 case ALARM:
                     file = new File(dir, button.getText() + " alarm.mp3");
                     break;
+                case MESSENGER:
+                    file = new File(dir, button.getText() + " messenger.mp3");
+                    break;
             }
 
             if (!file.exists() && !file.isDirectory()) {
@@ -142,7 +145,7 @@ public class Sound {
                 fos.write(buffer, 0, count);
             }
 
-            Toast.makeText(context, "Utworzono plik \n" + file.getAbsolutePath(), Toast.LENGTH_LONG).show();
+
 
 
         } catch (FileNotFoundException e) {
@@ -160,68 +163,17 @@ public class Sound {
             return file;
         }
     }
-
 
     //Sends a sound message via Messenger
-    public File download(Context context, File dir, Type type) throws IOException {
-        InputStream is = null;
-        FileOutputStream fos = null;
-        File file = null;
-
-        try {
-            switch(type){
-                case NOTIFICATION:
-                    file = new File(dir, button.getText() + " notification.mp3");
-                    break;
-                case RINGTONE:
-                    file = new File(dir, button.getText() + " ringtone.mp3");
-                    break;
-                case ALARM:
-                    file = new File(dir, button.getText() + " alarm.mp3");
-                    break;
-            }
-
-            if (!file.exists() && !file.isDirectory()) {
-                file.createNewFile();
-            }
-
-            is = context.getResources().openRawResource(this.soundId);
-            fos = new FileOutputStream(file);
-
-            byte[] buffer = new byte[1024];
-            int count;
-
-            while ((count = is.read(buffer, 0, 1024)) != -1) {
-                fos.write(buffer, 0, count);
-            }
-
-            Toast.makeText(context, "Utworzono plik \n" + file.getAbsolutePath(), Toast.LENGTH_LONG).show();
-
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (is != null) {
-                is.close();
-            }
-            if (fos != null) {
-                fos.close();
-            }
-
-            return file;
-        }
-    }
-
-
     public void send(Activity activity, Context context, File dir) {
         File file;
         try {
-            file = download(context, dir);
+            file = download(context, dir, Type.MESSENGER);
             Uri uri = FileProvider.getUriForFile(context, context.getApplicationContext().getPackageName() + ".com.knk.kruszwilprestiz.provider", file);
             ShareToMessengerParams shareToMessengerParams = ShareToMessengerParams.newBuilder(uri, "audio/mpeg").build();
             MessengerUtils.shareToMessenger(activity, 321, shareToMessengerParams);
+
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -232,9 +184,7 @@ public class Sound {
 
         File file = null;
         try {
-
             //Prevents directory cluttering, deletes unused sounds and saves new ones
-         
            switch (type) {
                 case ALARM:
                     deleteFiles(dir, type);
@@ -242,20 +192,15 @@ public class Sound {
                     break;
 
                 case RINGTONE:
-
                     deleteFiles(dir, type);
-
                     file = download(context, dir, Type.RINGTONE);
                     break;
 
                 case NOTIFICATION:
-
                     deleteFiles(dir, type);
                     file = download(context, dir, Type.NOTIFICATION);
+
             }
-
-
-           
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -317,10 +262,12 @@ public class Sound {
                 Toast.makeText(context, "Ustawiono dźwięk alarmu", Toast.LENGTH_LONG).show();
                 break;
         }
+
+        file.delete();
     }
 
     //Deletes all files of certain type
-    private void deleteFiles(File dir, Type type) {
+    public static void deleteFiles(File dir, Type type) {
         String ending = "";
 
         switch (type){
@@ -334,6 +281,10 @@ public class Sound {
 
             case RINGTONE:
                 ending = "ringtone.mp3";
+                break;
+
+            case MESSENGER:
+                ending = "messenger.mp3";
                 break;
         }
 
@@ -357,14 +308,10 @@ public class Sound {
         MainActivity.editor.commit();
         Log.i("halko", Integer.toString(this.button.getId())+" put");
 
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                this.button.setBackground(activity.getDrawable(R.drawable.button_bg_fav));
-            }
-
-
+        this.button.setBackgroundResource(R.drawable.button_bg_fav);
     }
 
+    //Moves a sound from favourites_layout to main_layout
     private void removeFavourite(Activity activity) {
         LinearLayout main_layout = activity.findViewById(R.id.main_layout);
         LinearLayout favourites_layout = activity.findViewById(R.id.favourites_layout);
@@ -376,9 +323,9 @@ public class Sound {
         MainActivity.editor.putBoolean(Integer.toString(this.button.getId()), false);
         MainActivity.editor.commit();
         Log.i("halko", Integer.toString(this.button.getId())+" remove");
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            this.button.setBackground(activity.getDrawable(R.drawable.button_bg));
-        }
+
+        this.button.setBackgroundResource(R.drawable.button_bg);
+
 
     }
 }

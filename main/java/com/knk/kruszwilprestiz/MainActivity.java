@@ -2,6 +2,7 @@ package com.knk.kruszwilprestiz;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -43,23 +44,16 @@ public class MainActivity extends AppCompatActivity {
         sharedPreferences = getPreferences(getApplicationContext().MODE_PRIVATE);
         editor = sharedPreferences.edit();
 
+        //Navigation bar for Lollipop-and-above users
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setNavigationBarColor(getResources().getColor(R.color.colorNavBar));
+        }
+
         //Create directory for app sounds
         getFileSaveDir();
 
-
-
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
-            // Check whether has the write settings permission or not.
-            boolean settingsCanWrite = Settings.System.canWrite(this);
-        
-
-            if(!settingsCanWrite) {
-                // If do not have write settings permission then open the Can modify system settings panel.
-                Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
-                startActivity(intent);
-
-            }
-        }
+        //Delete messenger files
+        if(fileSaveDir != null) Sound.deleteFiles(fileSaveDir, Sound.Type.MESSENGER);
 
         //Associate buttons with sounds
         addSound(R.id.kupujetensyf, R.raw.kupujetensyf, "Kupuję ten syf, żeby Janusze dostali zawału.");
@@ -83,6 +77,13 @@ public class MainActivity extends AppCompatActivity {
         addSound(R.id.przystepnacena, R.raw.przystepnacena,  "Cena jak na kalkulator jest bardzo przystępna, bo kosztuje zaledwie półtora tysiąca złotych");
         addSound(R.id.wiekliczba, R.raw.wiekliczba,  "Wiek to tylko liczba");
         addSound(R.id.rolexodmierzaczas, R.raw.rolexodmierzaczas,  "Mój Rolex odmierza czas na odpoczynek");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        //Delete messenger files]
+        if(fileSaveDir != null) Sound.deleteFiles(fileSaveDir, Sound.Type.MESSENGER);
     }
 
     //Associates button with sound
@@ -129,6 +130,7 @@ public class MainActivity extends AppCompatActivity {
                     case 1:
                         try {
                             soundMap.get(view).download(getApplicationContext(), fileSaveDir);
+
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -139,14 +141,44 @@ public class MainActivity extends AppCompatActivity {
                         break;
 
                     case 3:
+                        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+                            // Check whether has the write settings permission or not.
+                            boolean settingsCanWrite = Settings.System.canWrite(getApplicationContext());
+                            //If doesn't have them, reload activity
+                            if(!settingsCanWrite) {
+                                MainActivity.this.finish();
+                                startActivity(getIntent());
+                                break;
+                            }
+                        }
                         soundMap.get(view).setAs(MainActivity.this, getApplicationContext(), fileSaveDir, Sound.Type.RINGTONE);
                         break;
 
                     case 4:
+                        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+                            // Check whether has the write settings permission or not.
+                            boolean settingsCanWrite = Settings.System.canWrite(getApplicationContext());
+                            //If doesn't have them, reload activity
+                            if(!settingsCanWrite) {
+                                MainActivity.this.finish();
+                                startActivity(getIntent());
+                                break;
+                            }
+                        }
                         soundMap.get(view).setAs(MainActivity.this, getApplicationContext(), fileSaveDir, Sound.Type.NOTIFICATION);
                         break;
 
                     case 5:
+                        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+                            // Check whether has the write settings permission or not.
+                            boolean settingsCanWrite = Settings.System.canWrite(getApplicationContext());
+                            //If doesn't have them, reload activity
+                            if(!settingsCanWrite) {
+                                MainActivity.this.finish();
+                                startActivity(getIntent());
+                                break;
+                            }
+                        }
                         soundMap.get(view).setAs(MainActivity.this, getApplicationContext(), fileSaveDir, Sound.Type.ALARM);
                         break;
                 }
@@ -206,6 +238,8 @@ public class MainActivity extends AppCompatActivity {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     getSaveDir();
+                    //Check whether app has required permissions
+                    checkPermissions(this);
                 } else {
                     Toast.makeText(this,
                             "Aby móc pobierać dźwięki, wysyłać je, oraz ustawiać jako dźwięk powiadomień lub dzwonka, musisz udzielić aplikacji odpowiednich uprawnień",
@@ -213,5 +247,36 @@ public class MainActivity extends AppCompatActivity {
                 }
                 break;
         }
+    }
+    //Checks necessary permissions
+    private void checkPermissions(Context context) {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+            // Check whether has the write settings permission or not.
+            boolean settingsCanWrite = Settings.System.canWrite(context);
+
+            if(!settingsCanWrite) {
+                // If do not have write settings permission then open the Can modify system settings panel.
+                createPermissionsDialog(context);
+
+            }
+        }
+    }
+
+    //Create a dialog to enter settings
+    private void createPermissionsDialog(Context context) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("Uprawnienia");
+        builder.setMessage("Nadaj aplikacji niezbędne uprawnienia, aby móc korzystać z jej wszystkich funkcji.");
+        builder.setPositiveButton("PRZEJDŹ DO USTAWIEŃ", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+                startActivity(intent);
+            }
+        });
+
+
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
     }
 }
