@@ -47,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
         //Navigation bar for Lollipop-and-above users
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             getWindow().setNavigationBarColor(getResources().getColor(R.color.colorNavBar));
+
         }
 
         //Create directory for app sounds
@@ -240,6 +241,8 @@ public class MainActivity extends AppCompatActivity {
                     getSaveDir();
                     //Check whether app has required permissions
                     checkPermissions(this);
+
+
                 } else {
                     Toast.makeText(this,
                             "Aby móc pobierać dźwięki, wysyłać je, oraz ustawiać jako dźwięk powiadomień lub dzwonka, musisz udzielić aplikacji odpowiednich uprawnień",
@@ -250,6 +253,8 @@ public class MainActivity extends AppCompatActivity {
     }
     //Checks necessary permissions
     private void checkPermissions(Context context) {
+
+
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
             // Check whether has the write settings permission or not.
             boolean settingsCanWrite = Settings.System.canWrite(context);
@@ -259,6 +264,10 @@ public class MainActivity extends AppCompatActivity {
                 createPermissionsDialog(context);
 
             }
+
+            //If first launch, show the dialog
+            createFirstLaunchDialog(context);
+
         }
     }
 
@@ -278,5 +287,30 @@ public class MainActivity extends AppCompatActivity {
 
         AlertDialog alertDialog = builder.create();
         alertDialog.show();
+    }
+
+    //Shows only on first launch
+    private void createFirstLaunchDialog(Context context){
+        boolean isFirstLaunch = sharedPreferences.getBoolean("isFirstLaunch", true);
+        if (isFirstLaunch) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setTitle("Witaj w Kruszwil Prestiż!");
+            builder.setMessage("Dziękujemy za zakup! Dotknij i przytrzymaj dźwięk, aby skorzystać z funkcji aplikacji. Miłej zabawy! :)");
+            builder.setPositiveButton("OKEJ!", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
+
+            AlertDialog alertDialog = builder.create();
+            alertDialog.show();
+            isFirstLaunch = false;
+            editor.putBoolean("isFirstLaunch", isFirstLaunch);
+            editor.commit();
+        }
+
+
+
     }
 }
