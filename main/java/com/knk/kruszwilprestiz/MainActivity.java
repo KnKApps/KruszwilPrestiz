@@ -78,6 +78,16 @@ public class MainActivity extends AppCompatActivity {
         addSound(R.id.przystepnacena, R.raw.przystepnacena,  "Cena jak na kalkulator jest bardzo przystępna, bo kosztuje zaledwie półtora tysiąca złotych");
         addSound(R.id.wiekliczba, R.raw.wiekliczba,  "Wiek to tylko liczba");
         addSound(R.id.rolexodmierzaczas, R.raw.rolexodmierzaczas,  "Mój Rolex odmierza czas na odpoczynek");
+
+        addSound(R.id.cotyzrobiles, R.raw.cotyzrobiles, "Co Ty zrobiłeś ?!");
+        addSound(R.id.donperignon, R.raw.donperignon1, "Don Perignon");
+        addSound(R.id.jezykiobce, R.raw.jezykiobce, "Jeżeli nie znacie języków obcych, to wasz problem");
+        addSound(R.id.mocneslowa, R.raw.mocneslowa, "Muszę przyznać, że to dosyć mocne słowa jak na dwunastoletnią dziewczynkę");
+        addSound(R.id.ocochodzi, R.raw.ocochodzi, "Ej o co Ci chodzi ej ziom");
+        addSound(R.id.tanutabuja, R.raw.tanutabuja, "Ta nuta mną buja");
+        addSound(R.id.wartoscczlowieka, R.raw.wartoscczlowieka, "Wartość człowieka liczy się w dolarach amerykańskich");
+        addSound(R.id.obrzydliwe, R.raw.obrzydliwe, "Jest to obrzydliwe i na samą myśl robi mi się niedobrze");
+        addSound(R.id.fekalia, R.raw.fekalia, "Moje fekalia są warte około 200zł");
     }
 
     @Override

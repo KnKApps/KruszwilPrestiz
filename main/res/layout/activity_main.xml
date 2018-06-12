@@ -134,6 +134,51 @@
                 android:id="@+id/rolexodmierzaczas"
                 style="@style/buttonActive"
                 android:text="Rolex odmierza \n czas na odpoczynek" />
+
+            <Button
+                android:id="@+id/cotyzrobiles"
+                style="@style/buttonActive"
+                android:text="Co Ty zrobiłeś" />
+
+            <Button
+                android:id="@+id/donperignon"
+                style="@style/buttonActive"
+                android:text="Don Perignon" />
+
+            <Button
+                android:id="@+id/jezykiobce"
+                style="@style/buttonActive"
+                android:text="Języki obce " />
+
+            <Button
+                android:id="@+id/mocneslowa"
+                style="@style/buttonActive"
+                android:text="Mocne słowa" />
+
+            <Button
+                android:id="@+id/ocochodzi"
+                style="@style/buttonActive"
+                android:text="O co Ci\nchodzi" />
+
+            <Button
+                android:id="@+id/tanutabuja"
+                style="@style/buttonActive"
+                android:text="Ta nuta\nmną buja" />
+
+            <Button
+                android:id="@+id/wartoscczlowieka"
+                style="@style/buttonActive"
+                android:text="Wartość człowieka" />
+
+            <Button
+                android:id="@+id/obrzydliwe"
+                style="@style/buttonActive"
+                android:text="Obrzydliwe " />
+
+            <Button
+                android:id="@+id/fekalia"
+                style="@style/buttonActive"
+                android:text="fekalia" />
         </LinearLayout>
     </ScrollView>
 </RelativeLayout>
