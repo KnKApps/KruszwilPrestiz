@@ -78,6 +78,16 @@ public class MainActivity extends AppCompatActivity {
         addSound(R.id.przystepnacena, R.raw.przystepnacena,  "Cena jak na kalkulator jest bardzo przystępna, bo kosztuje zaledwie półtora tysiąca złotych");
         addSound(R.id.wiekliczba, R.raw.wiekliczba,  "Wiek to tylko liczba");
         addSound(R.id.rolexodmierzaczas, R.raw.rolexodmierzaczas,  "Mój Rolex odmierza czas na odpoczynek");
+
+        addSound(R.id.cotyzrobiles, R.raw.cotyzrobiles, "Co Ty zrobiłeś ?!");
+        addSound(R.id.donperignon, R.raw.donperignon1, "Don Perignon");
+        addSound(R.id.jezykiobce, R.raw.jezykiobce, "Jeżeli nie znacie języków obcych, to wasz problem");
+        addSound(R.id.mocneslowa, R.raw.mocneslowa, "Muszę przyznać, że to dosyć mocne słowa jak na dwunastoletnią dziewczynkę");
+        addSound(R.id.ocochodzi, R.raw.ocochodzi, "Ej o co Ci chodzi ej ziom");
+        addSound(R.id.tanutabuja, R.raw.tanutabuja, "Ta nuta mną buja");
+        addSound(R.id.wartoscczlowieka, R.raw.wartoscczlowieka, "Wartość człowieka liczy się w dolarach amerykańskich");
+        addSound(R.id.obrzydliwe, R.raw.obrzydliwe, "Jest to obrzydliwe i na samą myśl robi mi się niedobrze");
+        addSound(R.id.fekalia, R.raw.fekalia, "Moje fekalia są warte około 200zł");
     }
 
     @Override
@@ -295,7 +305,10 @@ public class MainActivity extends AppCompatActivity {
         if (isFirstLaunch) {
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
             builder.setTitle("Witaj w Kruszwil Prestiż!");
-            builder.setMessage("Dziękujemy za zakup! Dotknij i przytrzymaj dźwięk, aby skorzystać z funkcji aplikacji. Miłej zabawy! :)");
+            builder.setMessage("Dziękujemy za zakup! Wciśnij przycisk by odtworzyć dźwięk," +
+                    " przytrzymaj by skorzystać z dodatkowych funkcji. Miłej zabawy! :)");
+
+            
             builder.setPositiveButton("OKEJ!", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
