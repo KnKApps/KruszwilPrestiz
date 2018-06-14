@@ -6,8 +6,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.Settings;
@@ -19,6 +21,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import java.io.File;
@@ -43,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         sharedPreferences = getPreferences(getApplicationContext().MODE_PRIVATE);
         editor = sharedPreferences.edit();
+
 
         //Navigation bar for Lollipop-and-above users
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -70,6 +74,8 @@ public class MainActivity extends AppCompatActivity {
         addSound(R.id.jestemmarek, R.raw.jestemmarek,  "Siema, jestem Marek, mam 16 lat");
         addSound(R.id.prostytutka, R.raw.prostytutka,  "Prostytutka");
         addSound(R.id.blachara, R.raw.blachara,  "Blachara");
+        addSound(R.id.sluzacychodz, R.raw.sluzacychodz, "Służacy, chodź");
+        addSound(R.id.zapomnialesoczyms, R.raw.zapomnialesoczyms, "Zapomniałeś o czymś czy nie !?");
 
         addSound(R.id.stosunek, R.raw.stosunek,  "Codziennie odbywam stosunek seksualny z co najmniej jedną dziewczyną");
         addSound(R.id.lustro, R.raw.lustro,  "Lustra używam do oglądania mojego Rolexa z dwóch stron");
@@ -324,6 +330,38 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
+    }
 
+
+
+
+
+    public void createAppInfoDialog(View view) {
+        PackageInfo packageInfo = null;
+
+        try {
+             packageInfo = this.getPackageManager().getPackageInfo(getPackageName(), 0);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setTitle("Informacje o aplikacji");
+        builder.setMessage("Wersja: "+packageInfo.versionName+"\nKliknij DODAJ DŹWIĘK, aby przejść do formularza i dodać własną propozycję nowego, prestiżowego dźwięku!");
+        builder.setPositiveButton("ZAMKNIJ", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        builder.setNegativeButton("DODAJ DŹWIĘK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://kruszwil.000webhostapp.com/")));
+            }
+        });
+
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
     }
 }
