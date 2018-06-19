@@ -2,6 +2,7 @@ package com.knk.kruszwilprestiz;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -24,6 +25,8 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import com.google.firebase.analytics.FirebaseAnalytics;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -40,10 +43,17 @@ public class MainActivity extends AppCompatActivity {
     //Editor for SharedPreferences
     public static SharedPreferences.Editor editor;
 
+    private FirebaseAnalytics firebaseAnalytics;
+
+    Intent serviceIntent;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        firebaseAnalytics = FirebaseAnalytics.getInstance(this);
+
         sharedPreferences = getPreferences(getApplicationContext().MODE_PRIVATE);
         editor = sharedPreferences.edit();
 
@@ -94,6 +104,10 @@ public class MainActivity extends AppCompatActivity {
         addSound(R.id.wartoscczlowieka, R.raw.wartoscczlowieka, "Wartość człowieka liczy się w dolarach amerykańskich");
         addSound(R.id.obrzydliwe, R.raw.obrzydliwe, "Jest to obrzydliwe i na samą myśl robi mi się niedobrze");
         addSound(R.id.fekalia, R.raw.fekalia, "Moje fekalia są warte około 200zł");
+
+        //Updater
+        serviceIntent = new Intent(this, UpdateService.class);
+        if (!isMyServiceRunning(UpdateService.class)) startService(serviceIntent);
     }
 
     @Override
@@ -101,6 +115,25 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         //Delete messenger files]
         if(fileSaveDir != null) Sound.deleteFiles(fileSaveDir, Sound.Type.MESSENGER);
+    }
+
+    @Override
+    protected void onDestroy() {
+        stopService(serviceIntent);
+        super.onDestroy();
+    }
+
+    //Checks whether service is running
+    private boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                Log.i ("isMyServiceRunning?", true+"");
+                return true;
+            }
+        }
+        Log.i ("isMyServiceRunning?", false+"");
+        return false;
     }
 
     //Associates button with sound
@@ -145,6 +178,18 @@ public class MainActivity extends AppCompatActivity {
                         break;
 
                     case 1:
+                        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+                            // Check whether has the write settings permission or not.
+                            boolean settingsCanWrite = Settings.System.canWrite(getApplicationContext());
+
+                            if(!settingsCanWrite) {
+                                // If do not have write settings permission, reload activity
+                                MainActivity.this.finish();
+                                startActivity(getIntent());
+                                break;
+
+                            }
+                        }
                         try {
                             soundMap.get(view).download(getApplicationContext(), fileSaveDir);
 
@@ -154,6 +199,18 @@ public class MainActivity extends AppCompatActivity {
                         break;
 
                     case 2:
+                        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+                            // Check whether has the write settings permission or not.
+                            boolean settingsCanWrite = Settings.System.canWrite(getApplicationContext());
+
+                            if(!settingsCanWrite) {
+                                // If do not have write settings permission, reload activity
+                                MainActivity.this.finish();
+                                startActivity(getIntent());
+                                break;
+
+                            }
+                        }
                         soundMap.get(view).send(MainActivity.this, getApplicationContext(), fileSaveDir);
                         break;
 

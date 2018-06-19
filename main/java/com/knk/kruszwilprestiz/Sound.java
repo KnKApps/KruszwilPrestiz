@@ -268,29 +268,31 @@ public class Sound {
 
     //Deletes all files of certain type
     public static void deleteFiles(File dir, Type type) {
-        String ending = "";
+        if (dir.listFiles() != null) {
+            String ending = "";
 
-        switch (type){
-            case NOTIFICATION:
-                ending = "notification.mp3";
-                break;
+            switch (type) {
+                case NOTIFICATION:
+                    ending = "notification.mp3";
+                    break;
 
-            case ALARM:
-                ending = "alarm.mp3";
-                break;
+                case ALARM:
+                    ending = "alarm.mp3";
+                    break;
 
-            case RINGTONE:
-                ending = "ringtone.mp3";
-                break;
+                case RINGTONE:
+                    ending = "ringtone.mp3";
+                    break;
 
-            case MESSENGER:
-                ending = "messenger.mp3";
-                break;
-        }
+                case MESSENGER:
+                    ending = "messenger.mp3";
+                    break;
+            }
 
-        for (File file : dir.listFiles()) {
-            if(file.getName().contains(ending)) {
-                file.delete();
+            for (File file : dir.listFiles()) {
+                if (file.getName().contains(ending)) {
+                    file.delete();
+                }
             }
         }
     }
